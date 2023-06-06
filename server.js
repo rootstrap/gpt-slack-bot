@@ -38,9 +38,9 @@ async function getConversationThreadHistory(channel, ts, slackClient) {
 }
 
 async function summarizeThread(conversationHistory) {
-  var message = conversationHistory.map((message) => `[${message.user}] ${message.text}`).join('\n')
-
-  const payload = getOpenAiPayload(message, "Summarize this conversation");
+  console.log(conversationHistory);
+  var message = conversationHistory.reverse().map((message) => `[${message.user}] ${message.text}`).join('\n')
+  const payload = getOpenAiPayload(message, "Summarize this conversation, highlight the most important parts, but don't mentions the names of the users, create bullet points of the subjects.");
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
@@ -72,27 +72,37 @@ function getOpenAiPayload(message, action) {
   ];
 }
 
-//TODO: do a translation tool
-app.command('/translate', async ({ command, ack, respond }) => {
-  console.log(command.text);
-  // Acknowledge command request
-  await ack();
+async function defaultAnswer(say) {
+  await say(
+    'Hey 👋. What can I do for you? \n' +
+    'Tag me with the text "summarize" in a thread to summarize you the thread conversation. \n' +
+    'Type / to see all my available commands.'
+  )
+}
 
-  await respond(`${command.text}`);
-});
+async function defaultError(say) {
+  await say("Sorry something went wrong! 😪");
+}
 
 //TODO: run any gpt prompt
-app.command('/gpt', async ({ command, ack, say }) => {
+app.command('/hi', async ({ command, ack, say }) => {
   // Acknowledge command request
-  try {
-    await ack();
-    responseText = await askGpt(command.text);
-    responseText
-  } catch (error) {
-    console.error(error);
-    await say("Sorry something went wrong! 😪");
+  var query = command.text;
+  if (query.trim.length > 0) {
+    try {
+      await ack();
+      responseText = await askGpt(command.text);
+      await say(responseText);
+    } catch (error) {
+      console.error(error);
+      await defaultError(say);
+    }
+  } else {
+    await defaultAnswer(say);
   }
 });
+
+
 
 app.event('app_mention', async ({ event, context, client, say }) => {
   if (event.text.includes('summarize')) {
@@ -102,17 +112,13 @@ app.event('app_mention', async ({ event, context, client, say }) => {
       var channelId = event.channel
       const conversationHistory = await getConversationThreadHistory(channelId, threadId, client);
       responseText = await summarizeThread(conversationHistory);
-      responseText;
+      await say(responseText);
     } catch (error) {
       console.error(error);
-      await say("Sorry something went wrong! 😪");
+      await defaultError(say);
     }
   } else {
-    say(
-      'Hey 👋. What can I do for you? \n' +
-      'Tag me with the text "summarize" in a thread to summarize you the thread conversation. \n' +
-      'Type / to see all my available commands.'
-    )
+    await defaultAnswer(say);
   }
 });
 
