@@ -27,7 +27,7 @@ function messageRole(message) {
   }
 };
 
-async function getConversationHistory(channel, ts, slackClient) {
+async function getConversationThreadHistory(channel, ts, slackClient) {
   const result = await slackClient.conversations.replies({
     channel: channel,
     ts: ts,
@@ -37,27 +37,42 @@ async function getConversationHistory(channel, ts, slackClient) {
   return result.messages.reverse();
 }
 
-async function getOpenAiResponse(conversationHistory) {
-  const messages = getOpenAiPayload(conversationHistory, "Summarize this conversation: ");
+async function summarizeThread(conversationHistory) {
+  var message = conversationHistory.map((message) => `[${message.user}] ${message.text}`).join('\n')
+
+  const payload = getOpenAiPayload(message, "Summarize this conversation");
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
-    messages: messages,
+    messages: payload,
   });
 
   return result.data.choices.shift().message.content;
 }
 
-function getOpenAiPayload(conversationHistory, action) {
+async function askGpt(question) {
+  const payload = getOpenAiPayload(question, "Answer");
+
+  const result = await openai.createChatCompletion({
+    model: openaiChatModel,
+    messages: payload,
+  });
+
+  return result.data.choices.shift().message.content;
+}
+
+function getOpenAiPayload(message, action) {
   return [
     {
-      role: 'system', content: systemPrompt,
+      role: 'system', content: action,
     },
-    ...conversationHistory.map((message) => ({ role: messageRole(message), content: action + message.text })),
+    {
+      role: 'user', content: message,
+    }
   ];
 }
 
-//TODO: translate
+//TODO: do a translation tool
 app.command('/translate', async ({ command, ack, respond }) => {
   console.log(command.text);
   // Acknowledge command request
@@ -67,24 +82,16 @@ app.command('/translate', async ({ command, ack, respond }) => {
 });
 
 //TODO: run any gpt prompt
-app.command('/gpt', async ({ command, ack, respond }) => {
-  console.log(command.text);
+app.command('/gpt', async ({ command, ack, say }) => {
   // Acknowledge command request
-  await ack();
-
-  await respond(`${command.text}`);
-});
-
-app.message(async ({ message, say, ack, client }) => {
-  console.log(message);
-  if (!message.type === 'message' || message.subtype) {
-    return message;
+  try {
+    await ack();
+    responseText = await askGpt(command.text);
+    responseText
+  } catch (error) {
+    console.error(error);
+    await say("Sorry something went wrong! 😪");
   }
-
-  const conversationHistory = await getConversationHistory(message.channel, message.ts, client);
-
-  responseText = await getOpenAiResponse(conversationHistory);
-  await say(responseText);
 });
 
 app.event('app_mention', async ({ event, context, client, say }) => {
@@ -93,12 +100,12 @@ app.event('app_mention', async ({ event, context, client, say }) => {
       console.log(event);
       var threadId = event.thread_ts
       var channelId = event.channel
-      const conversationHistory = await getConversationHistory(channelId, threadId, client);
-      console.log(conversationHistory)
-      responseText = await getOpenAiResponse(conversationHistory);
-      await say(responseText);
+      const conversationHistory = await getConversationThreadHistory(channelId, threadId, client);
+      responseText = await summarizeThread(conversationHistory);
+      responseText;
     } catch (error) {
       console.error(error);
+      await say("Sorry something went wrong! 😪");
     }
   } else {
     say(
