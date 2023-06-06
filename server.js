@@ -71,6 +71,13 @@ app.command('/translate', async ({ command, ack, respond }) => {
   await respond(`${command.text}`);
 });
 
+app.command('/gpt', async ({ command, ack, respond }) => {
+  console.log(command.text);
+  // Acknowledge command request
+  //await ack();
+
+  await respond(`${command.text}`);
+});
 
 app.message(async ({ message, say, ack, client }) => {
   console.log(message);
