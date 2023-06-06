@@ -55,9 +55,27 @@ function getOpenAiPayload(conversationHistory) {
   ];
 }
 
+app.command('/summarize', async ({ command, ack, respond }) => {
+  console.log(command.text);
+  // Acknowledge command request
+  //await ack();
+
+  await respond(`${command.text}`);
+});
+
+app.command('/translate', async ({ command, ack, respond }) => {
+  console.log(command.text);
+  // Acknowledge command request
+  //await ack();
+
+  await respond(`${command.text}`);
+});
+
+
 app.message(async ({ message, say, ack, client }) => {
+  console.log(message);
   if (!message.type === 'message' || message.subtype) {
-    return;
+    return message;
   }
 
   const conversationHistory = await getConversationHistory(message.channel, message.ts, client);
