@@ -8,13 +8,19 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 const openaiChatModel = process.env.OPENAI_CHAT_MODEL;
-const systemPrompt = fs.readFileSync('./agent.txt', 'utf8');
+
+const summarizePrompt = fs.readFileSync('./assets/summarize_prompt.txt', 'utf8');
+const hiPrompt = fs.readFileSync('./assets/hi_prompt.txt', 'utf8');
+const defaultResponse = fs.readFileSync('./assets/default_response.txt', 'utf8');
+const errorResponse = fs.readFileSync('./assets/error_response.txt', 'utf8');
 
 const { App } = require('@slack/bolt');
 
 const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   token: process.env.SLACK_BOT_TOKEN,
+  appToken: process.env.APP_TOKEN,
+  socketMode: true,
 });
 
 function messageRole(message) {
@@ -25,70 +31,90 @@ function messageRole(message) {
   }
 };
 
-async function getConversationHistory(channel, ts, slackClient) {
-  const result = await slackClient.conversations.history({
-    channel,
-    latest: ts,
+async function getConversationThreadHistory(channel, ts, slackClient) {
+  const result = await slackClient.conversations.replies({
+    channel: channel,
+    ts: ts,
     inclusive: true,
   });
 
-  return result.messages.reverse();
+  return result.messages;
 }
 
-async function getOpenAiResponse(conversationHistory) {
-  const messages = getOpenAiPayload(conversationHistory);
+async function summarizeThread(conversationHistory) {
+  var message = conversationHistory.map((message) => `[${message.user}] ${message.text}`).join(' ')
+  const payload = getOpenAiPayload(message, summarizePrompt);
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
-    messages: messages,
+    messages: payload,
   });
 
   return result.data.choices.shift().message.content;
 }
 
-function getOpenAiPayload(conversationHistory) {
+async function askGpt(question) {
+  const payload = getOpenAiPayload(question, hiPrompt);
+
+  const result = await openai.createChatCompletion({
+    model: openaiChatModel,
+    messages: payload,
+  });
+
+  return result.data.choices.shift().message.content;
+}
+
+function getOpenAiPayload(message, action) {
   return [
     {
-      role: 'system', content: systemPrompt,
+      role: 'system', content: action,
     },
-    ...conversationHistory.map((message) => ({ role: messageRole(message), content: message.text })),
+    {
+      role: 'user', content: message,
+    }
   ];
 }
 
-app.command('/summarize', async ({ command, ack, respond }) => {
-  console.log(command.text);
+async function defaultAnswer(say) {
+  await say(defaultResponse)
+}
+
+async function defaultError(say) {
+  await say(errorResponse);
+}
+
+//TODO: run any gpt prompt
+app.command('/hi', async ({ command, ack, say }) => {
   // Acknowledge command request
-  //await ack();
-
-  await respond(`${command.text}`);
-});
-
-app.command('/translate', async ({ command, ack, respond }) => {
-  console.log(command.text);
-  // Acknowledge command request
-  //await ack();
-
-  await respond(`${command.text}`);
-});
-
-app.command('/gpt', async ({ command, ack, respond }) => {
-  console.log(command.text);
-  // Acknowledge command request
-  //await ack();
-
-  await respond(`${command.text}`);
-});
-
-app.message(async ({ message, say, ack, client }) => {
-  console.log(message);
-  if (!message.type === 'message' || message.subtype) {
-    return message;
+  var query = command.text;
+  if (query.trim().length > 0) {
+    try {
+      await ack();
+      responseText = await askGpt(command.text);
+      await say(responseText);
+    } catch (error) {
+      console.error(error);
+      await defaultError(say);
+    }
+  } else {
+    await defaultAnswer(say);
   }
+});
 
-  const conversationHistory = await getConversationHistory(message.channel, message.ts, client);
-
-  responseText = await getOpenAiResponse(conversationHistory);
-  await say(responseText);
+app.event('app_mention', async ({ event, context, client, say }) => {
+  if (event.text.includes('summarize')) {
+    try {
+      var threadId = event.thread_ts
+      var channelId = event.channel
+      const threadHistory = await getConversationThreadHistory(channelId, threadId, client);
+      var summarizedThread = await summarizeThread(threadHistory);
+      await say(summarizedThread);
+    } catch (error) {
+      await defaultError(say);
+    }
+  } else {
+    await defaultAnswer(say);
+  }
 });
 
 (async () => {

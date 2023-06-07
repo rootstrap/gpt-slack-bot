@@ -1,0 +1,3 @@
+Hey 👋. What can I do for you?
+Tag me with the text "summarize" in a thread to summarize you the thread conversation.
+Type / to see all my available commands.
