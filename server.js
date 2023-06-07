@@ -9,6 +9,11 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const openaiChatModel = process.env.OPENAI_CHAT_MODEL;
 
+const summarizePrompt = fs.readFileSync('./assets/summarize_prompt.txt', 'utf8');
+const hiPrompt = fs.readFileSync('./assets/hi_prompt.txt', 'utf8');
+const defaultResponse = fs.readFileSync('./assets/default_response.txt', 'utf8');
+const errorResponse = fs.readFileSync('./assets/error_response.txt', 'utf8');
+
 const { App } = require('@slack/bolt');
 
 const app = new App({
@@ -38,7 +43,7 @@ async function getConversationThreadHistory(channel, ts, slackClient) {
 
 async function summarizeThread(conversationHistory) {
   var message = conversationHistory.map((message) => `[${message.user}] ${message.text}`).join(' ')
-  const payload = getOpenAiPayload(message, "Summarize this conversation, highlight the most important parts, don't mentions the users name, the response should be in the same predominant language in the conversation.");
+  const payload = getOpenAiPayload(message, summarizePrompt);
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
@@ -49,7 +54,7 @@ async function summarizeThread(conversationHistory) {
 }
 
 async function askGpt(question) {
-  const payload = getOpenAiPayload(question, "Answer");
+  const payload = getOpenAiPayload(question, hiPrompt);
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
@@ -71,22 +76,18 @@ function getOpenAiPayload(message, action) {
 }
 
 async function defaultAnswer(say) {
-  await say(
-    'Hey 👋. What can I do for you? \n' +
-    'Tag me with the text "summarize" in a thread to summarize you the thread conversation. \n' +
-    'Type / to see all my available commands.'
-  )
+  await say(defaultResponse)
 }
 
 async function defaultError(say) {
-  await say("Sorry something went wrong! 😪");
+  await say(errorResponse);
 }
 
 //TODO: run any gpt prompt
 app.command('/hi', async ({ command, ack, say }) => {
   // Acknowledge command request
   var query = command.text;
-  if (query.trim.length > 0) {
+  if (query.trim().length > 0) {
     try {
       await ack();
       responseText = await askGpt(command.text);
