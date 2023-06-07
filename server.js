@@ -8,7 +8,6 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 const openaiChatModel = process.env.OPENAI_CHAT_MODEL;
-const systemPrompt = fs.readFileSync('./agent.txt', 'utf8');
 
 const { App } = require('@slack/bolt');
 
@@ -34,13 +33,12 @@ async function getConversationThreadHistory(channel, ts, slackClient) {
     inclusive: true,
   });
 
-  return result.messages.reverse();
+  return result.messages;
 }
 
 async function summarizeThread(conversationHistory) {
-  console.log(conversationHistory);
-  var message = conversationHistory.reverse().map((message) => `[${message.user}] ${message.text}`).join('\n')
-  const payload = getOpenAiPayload(message, "Summarize this conversation, highlight the most important parts, but don't mentions the names of the users, create bullet points of the subjects.");
+  var message = conversationHistory.map((message) => `[${message.user}] ${message.text}`).join(' ')
+  const payload = getOpenAiPayload(message, "Summarize this conversation, highlight the most important parts, don't mentions the users name, the response should be in the same predominant language in the conversation.");
 
   const result = await openai.createChatCompletion({
     model: openaiChatModel,
@@ -102,19 +100,15 @@ app.command('/hi', async ({ command, ack, say }) => {
   }
 });
 
-
-
 app.event('app_mention', async ({ event, context, client, say }) => {
   if (event.text.includes('summarize')) {
     try {
-      console.log(event);
       var threadId = event.thread_ts
       var channelId = event.channel
-      const conversationHistory = await getConversationThreadHistory(channelId, threadId, client);
-      responseText = await summarizeThread(conversationHistory);
-      await say(responseText);
+      const threadHistory = await getConversationThreadHistory(channelId, threadId, client);
+      var summarizedThread = await summarizeThread(threadHistory);
+      await say(summarizedThread);
     } catch (error) {
-      console.error(error);
       await defaultError(say);
     }
   } else {
