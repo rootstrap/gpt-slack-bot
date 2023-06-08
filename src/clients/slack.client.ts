@@ -65,6 +65,31 @@ class SlackApp {
         await this.defaultAnswer(say);
       }
     });
+
+    this.instance.command('/say', async ({ command, ack, say }) => {
+      var query = command.text;
+      var actions = query.split('to');
+
+      if (actions.length > 0) {
+        var target = actions.pop();
+        var order = actions.map(e => e).join(' to ');
+
+        var isAChannel = target?.startsWith("#") ?? false;
+
+        const responseText = await openai.generateMessageIdea(order);
+
+        if (isAChannel) {
+          const result = await this.instance.client.chat.postMessage({
+            channel: target ?? "",
+            text: responseText
+          });
+        } else {
+          say(responseText);
+        }
+      } else {
+        await this.defaultAnswer(say);
+      }
+    });
   }
 
   private static async defaultAnswer(say: SayFn) {

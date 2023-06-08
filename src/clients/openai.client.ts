@@ -23,6 +23,23 @@ class OpenAIClient {
     return message ? message.content : '';
   }
 
+  async gptRequest(payload: any) {
+    const result = await this.api.createChatCompletion({
+      model: OpenAIChatModel.GPT_3_5_TURBO,
+      messages: payload
+    });
+
+    const choice = result.data.choices.shift();
+    const message = choice ? choice.message : null;
+
+    return message ? message.content : '';
+  }
+
+  async generateMessageIdea(idea: string) { 
+    const payload = getOpenAiPayload(idea, botResponses.say);
+    return await this.gptRequest(payload);
+  }
+
   async askGpt(question: string) {
     const payload = getOpenAiPayload(question, botResponses.hi);
 
