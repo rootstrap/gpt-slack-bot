@@ -6,7 +6,7 @@ import { systemPrompts } from '../constants/messages/system.prompts';
 class OpenAIClient {
   private static instance: OpenAIClient;
 
-  constructor(private api: OpenAIApi) { }
+  constructor(private api: OpenAIApi) {}
 
   async gptRequest(input: string, prompt: string) {
     const payload = getOpenAiPayload(input, prompt);
@@ -17,8 +17,7 @@ class OpenAIClient {
     return getMessageContent(result);
   }
 
-  async summarizeThread(conversationHistory: any[]) {
-    var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
+  async summarizeThread(messageChat: string) {
     return await this.gptRequest(messageChat, systemPrompts.summarize);
   }
 
