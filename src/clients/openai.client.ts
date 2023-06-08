@@ -2,18 +2,23 @@ import { Configuration, OpenAIApi } from 'openai';
 import { getMessageContent, getOpenAiPayload } from '../utils/openai.utils';
 import { OpenAIChatModel } from '../constants/enums/chat-model.enum';
 import { systemPrompts } from '../constants/messages/system.prompts';
+import { checkTokenLimit } from '../utils/tokenizer.utils';
 
 class OpenAIClient {
   private static instance: OpenAIClient;
 
-  constructor(private api: OpenAIApi) { }
+  constructor(private api: OpenAIApi) {}
 
   async gptRequest(input: string, prompt: string) {
     const payload = getOpenAiPayload(input, prompt);
+
+    checkTokenLimit(payload);
+
     const result = await this.api.createChatCompletion({
       model: OpenAIChatModel.GPT_3_5_TURBO,
       messages: payload
     });
+
     return getMessageContent(result);
   }
 
