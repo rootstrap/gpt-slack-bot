@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai';
-import { getOpenAiPayload } from '../utils/openai.utils';
+import { getMessageContent, getOpenAiPayload } from '../utils/openai.utils';
 import { OpenAIChatModel } from '../constants/enums/chat-model.enum';
-import { botResponses } from '../constants/messages/bot.message';
+import { systemPrompts } from '../constants/messages/system.prompts';
 
 class OpenAIClient {
   private static instance: OpenAIClient;
@@ -10,31 +10,25 @@ class OpenAIClient {
 
   async summarizeThread(conversationHistory: any[]) {
     var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
-    const payload = getOpenAiPayload(messageChat, botResponses.summarize);
+    const payload = getOpenAiPayload(messageChat, systemPrompts.summarize);
 
     const result = await this.api.createChatCompletion({
       model: OpenAIChatModel.GPT_3_5_TURBO,
       messages: payload
     });
 
-    const choice = result.data.choices.shift();
-    const message = choice ? choice.message : null;
-
-    return message ? message.content : '';
+    return getMessageContent(result);
   }
 
   async askGpt(question: string) {
-    const payload = getOpenAiPayload(question, botResponses.hi);
+    const payload = getOpenAiPayload(question, systemPrompts.hi);
 
     const result = await this.api.createChatCompletion({
       model: OpenAIChatModel.GPT_3_5_TURBO,
       messages: payload
     });
 
-    const choice = result.data.choices.shift();
-    const message = choice ? choice.message : null;
-
-    return message ? message.content : '';
+    return getMessageContent(result);
   }
 
   public static build() {

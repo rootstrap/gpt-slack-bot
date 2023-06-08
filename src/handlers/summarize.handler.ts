@@ -17,5 +17,5 @@ export const summarizeHandler = async (event: AppMentionEvent, client: WebClient
   }
 
   var summarizedThread = await openai.summarizeThread(threadMessages);
-  await say(summarizedThread);
+  await say({ text: summarizedThread, thread_ts: ts });
 };
