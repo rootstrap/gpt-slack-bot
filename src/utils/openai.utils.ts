@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessage } from 'openai';
 
-export function getOpenAiPayload(message: string, action: string): ChatCompletionRequestMessage[] {
+export const getOpenAiPayload = (message: string, action: string): ChatCompletionRequestMessage[] => {
   return [
     {
       role: 'system',
@@ -11,4 +11,4 @@ export function getOpenAiPayload(message: string, action: string): ChatCompletio
       content: message
     }
   ];
-}
+};
