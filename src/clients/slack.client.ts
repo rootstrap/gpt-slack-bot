@@ -41,10 +41,10 @@ class SlackApp {
         if (handler) {
           await handler(event, client, say);
         } else {
-          await this.defaultAnswer(say);
+          await this.defaultAnswer(say, event);
         }
       } catch (error) {
-        await this.defaultError(say);
+        await this.defaultError(say, event);
       }
     });
   }
@@ -94,12 +94,12 @@ class SlackApp {
     });
   }
 
-  private static async defaultAnswer(say: SayFn) {
-    await say(botResponses.default);
+  private static async defaultAnswer(say: SayFn, event?: AppMentionEvent) {
+    await say({ text: botResponses.default, thread_ts: event?.ts || undefined });
   }
 
-  private static async defaultError(say: SayFn) {
-    await say(botResponses.error);
+  private static async defaultError(say: SayFn, event?: AppMentionEvent) {
+    await say({ text: botResponses.error, thread_ts: event?.ts || undefined });
   }
 }
 
