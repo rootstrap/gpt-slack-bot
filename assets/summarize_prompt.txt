@@ -1,2 +1,0 @@
-Summarize this conversation, highlight the most important parts, do not mentions the users name.
-Response in the same language that is the first message in the conversation.

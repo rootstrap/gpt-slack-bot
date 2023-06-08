@@ -1,16 +1,22 @@
 {
   "name": "slack-gpt-base-bot-node",
-  "version": "1.0.0",
-  "description": "Slack-GPT bot server",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "Rootstrap",
+  "version": "1.0.0",
   "license": "ISC",
+  "description": "Slack-GPT bot server",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.ts",
+    "start:dev": "ts-node src/index.ts"
+  },
   "dependencies": {
     "@slack/bolt": "^3.13.0",
     "dotenv": "^16.0.3",
     "openai": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
   }
 }
