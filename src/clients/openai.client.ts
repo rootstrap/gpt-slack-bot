@@ -22,8 +22,7 @@ class OpenAIClient {
     return getMessageContent(result);
   }
 
-  async summarizeThread(conversationHistory: any[]) {
-    var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
+  async summarizeThread(messageChat: string) {
     return await this.gptRequest(messageChat, systemPrompts.summarize);
   }
 
