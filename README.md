@@ -2,7 +2,6 @@
 
 This project is a base Node.js server, and is a Slack bot that uses OpenAI's chat API to generate responses to user messages. The bot uses the `@slack/bolt` package for interacting with the Slack API and the `openai` package for communicating with OpenAI's API.
 
-
 ## How it Works
 
 The bot listens for messages sent to it in a Slack channel and retrieves the conversation history for the channel using the Slack API. It then sends the conversation history along with the system prompt to the OpenAI chat API to generate a response. The response is sent back to the Slack channel as a message from the bot.
@@ -35,8 +34,13 @@ The conversation history sent to the OpenAI chat API includes both user messages
 ## Usage
 
 To start the Slack bot server, run the following command:
+
 ```sh
-npm start
+yarn start:dev
+```
+
+```sh
+yarn start
 ```
 
 Once the server is running, you can add the bot to your Slack workspace and start chatting with it. The bot will respond to any messages sent to it in the channel it was added to.
@@ -54,6 +58,7 @@ To set up the Slack bot on your Slack developer account, follow these steps:
 4. In the "Add features and functionality" section, click on the "Bots" feature and then click on the "Add a Bot User" button. Follow the prompts to give your bot a display name and default username.
 
 5. In the "OAuth & Permissions" section, add the following bot token scopes:
+
    - `chat:write`
    - `conversations:history`
 
@@ -66,21 +71,25 @@ To point the Slack bot to your local server, you can use a tool like [ngrok](htt
 1. Install ngrok by downloading the appropriate binary for your operating system from the [ngrok website](https://ngrok.com/download).
 
 2. Start your Node.js server on your local machine by running the following command in your project directory:
+
    ```sh
    npm start
    ```
 
 3. Start ngrok by running the following command in a separate terminal window:
+
    ```sh
    ngrok http 3000
    ```
 
 4. Copy the HTTPS forwarding URL from the ngrok console (e.g., `https://abcd1234.ngrok.io`) and add it to the "Event Subscriptions" section of your Slack app configuration. The URL should be in the following format:
+
    ```
    https://<ngrok-subdomain>.ngrok.io/slack/events
    ```
 
 5. Enable the "Enable Events" toggle and add the following event subscription:
+
    ```
    message.channels
    ```
