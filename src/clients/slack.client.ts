@@ -33,7 +33,9 @@ class SlackApp {
   private static registerMentionEvents() {
     this.instance.event('app_mention', async ({ event, context, client, say }) => {
       try {
-        const cmd = event.text;
+        const message = event.text;
+        const cmd = message.split(' ').pop() || '';
+
         const handler = this.handlers[cmd];
 
         if (handler) {
