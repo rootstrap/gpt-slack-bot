@@ -1,57 +1,33 @@
 import { Configuration, OpenAIApi } from 'openai';
-import { getOpenAiPayload } from '../utils/openai.utils';
+import { getMessageContent, getOpenAiPayload } from '../utils/openai.utils';
 import { OpenAIChatModel } from '../constants/enums/chat-model.enum';
-import { botResponses } from '../constants/messages/bot.message';
+import { systemPrompts } from '../constants/messages/system.prompts';
 
 class OpenAIClient {
   private static instance: OpenAIClient;
 
-  constructor(private api: OpenAIApi) {}
+  constructor(private api: OpenAIApi) { }
+
+  async gptRequest(input: string, prompt: string) {
+    const payload = getOpenAiPayload(input, prompt);
+    const result = await this.api.createChatCompletion({
+      model: OpenAIChatModel.GPT_3_5_TURBO,
+      messages: payload
+    });
+    return getMessageContent(result);
+  }
 
   async summarizeThread(conversationHistory: any[]) {
     var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
-    const payload = getOpenAiPayload(messageChat, botResponses.summarize);
-
-    const result = await this.api.createChatCompletion({
-      model: OpenAIChatModel.GPT_3_5_TURBO,
-      messages: payload
-    });
-
-    const choice = result.data.choices.shift();
-    const message = choice ? choice.message : null;
-
-    return message ? message.content : '';
+    return await this.gptRequest(messageChat, systemPrompts.summarize);
   }
 
-  async gptRequest(payload: any) {
-    const result = await this.api.createChatCompletion({
-      model: OpenAIChatModel.GPT_3_5_TURBO,
-      messages: payload
-    });
-
-    const choice = result.data.choices.shift();
-    const message = choice ? choice.message : null;
-
-    return message ? message.content : '';
-  }
-
-  async generateMessageIdea(idea: string) { 
-    const payload = getOpenAiPayload(idea, botResponses.say);
-    return await this.gptRequest(payload);
+  async generateMessageIdea(idea: string) {
+    return await this.gptRequest(idea, systemPrompts.say);
   }
 
   async askGpt(question: string) {
-    const payload = getOpenAiPayload(question, botResponses.hi);
-
-    const result = await this.api.createChatCompletion({
-      model: OpenAIChatModel.GPT_3_5_TURBO,
-      messages: payload
-    });
-
-    const choice = result.data.choices.shift();
-    const message = choice ? choice.message : null;
-
-    return message ? message.content : '';
+    return await this.gptRequest(question, systemPrompts.hi);
   }
 
   public static build() {
