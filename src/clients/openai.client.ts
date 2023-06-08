@@ -6,29 +6,28 @@ import { systemPrompts } from '../constants/messages/system.prompts';
 class OpenAIClient {
   private static instance: OpenAIClient;
 
-  constructor(private api: OpenAIApi) {}
+  constructor(private api: OpenAIApi) { }
 
-  async summarizeThread(conversationHistory: any[]) {
-    var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
-    const payload = getOpenAiPayload(messageChat, systemPrompts.summarize);
-
+  async gptRequest(input: string, prompt: string) {
+    const payload = getOpenAiPayload(input, prompt);
     const result = await this.api.createChatCompletion({
       model: OpenAIChatModel.GPT_3_5_TURBO,
       messages: payload
     });
-
     return getMessageContent(result);
   }
 
+  async summarizeThread(conversationHistory: any[]) {
+    var messageChat = conversationHistory.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
+    return await this.gptRequest(messageChat, systemPrompts.summarize);
+  }
+
+  async generateMessageIdea(idea: string) {
+    return await this.gptRequest(idea, systemPrompts.say);
+  }
+
   async askGpt(question: string) {
-    const payload = getOpenAiPayload(question, systemPrompts.hi);
-
-    const result = await this.api.createChatCompletion({
-      model: OpenAIChatModel.GPT_3_5_TURBO,
-      messages: payload
-    });
-
-    return getMessageContent(result);
+    return await this.gptRequest(question, systemPrompts.hi);
   }
 
   public static build() {
