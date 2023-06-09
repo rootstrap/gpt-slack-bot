@@ -59,6 +59,7 @@ class SlackApp {
           const responseText = await openai.askGpt(command.text);
           await say(responseText);
         } catch (error) {
+          console.log(error);
           await this.defaultError(say);
         }
       } else {
