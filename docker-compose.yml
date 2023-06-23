@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  gpt-slack-bot:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: gpt-slack-bot
+    container_name: gpt-slack-bot
+    env_file: .env
+    environment:
+      - SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN
+      - SLACK_SIGNING_SECRET=$SLACK_SIGNING_SECRET
+      - APP_TOKEN=$APP_TOKEN
+      - OPENAI_API_KEY=$OPENAI_API_KEY
+      - OPENAI_CHAT_MODEL=$OPENAI_CHAT_MODEL
+      - OPENAI_TOKEN_LIMIT=$OPENAI_TOKEN_LIMIT
+      - PORT=$PORT
+    ports:
+      - 3000:3000
