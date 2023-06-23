@@ -56,7 +56,7 @@ class SlackApp {
       if (query.trim().length > 0) {
         try {
           await ack();
-          const context = { query, user };
+          const context = { user };
           const responseText = await openai.askGpt(command.text, context);
           await say(responseText);
         } catch (error) {
@@ -75,7 +75,7 @@ class SlackApp {
         const target = actions.pop();
         const order = actions.map((e) => e).join(' to ');
 
-        const context = { query, user };
+        const context = { user };
         const responseText = await openai.generateMessageIdea(order, context);
 
         if (target) {
