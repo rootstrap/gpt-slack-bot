@@ -6,6 +6,7 @@
   "description": "Slack-GPT bot server",
   "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "start": "node dist/index.ts",
     "start:dev": "ts-node src/index.ts"
   },

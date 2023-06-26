@@ -51,12 +51,13 @@ class SlackApp {
 
   private static registerCommands() {
     this.instance.command('/hi', async ({ command, ack, say }) => {
-      var query = command.text;
+      const { user_id: user, text: query } = command;
 
       if (query.trim().length > 0) {
         try {
           await ack();
-          const responseText = await openai.askGpt(command.text);
+          const context = { user };
+          const responseText = await openai.askGpt(command.text, context);
           await say(responseText);
         } catch (error) {
           await this.defaultError(say);
@@ -67,19 +68,20 @@ class SlackApp {
     });
 
     this.instance.command('/say', async ({ command, ack, say }) => {
-      var query = command.text;
-      var actions = query.split(' to ');
+      const { user_id: user, text: query } = command;
+      const actions = query.split(' to ');
 
       if (actions.length > 0) {
-        var target = actions.pop();
-        var order = actions.map(e => e).join(' to ');
+        const target = actions.pop();
+        const order = actions.map((e) => e).join(' to ');
 
-        const responseText = await openai.generateMessageIdea(order);
+        const context = { user };
+        const responseText = await openai.generateMessageIdea(order, context);
 
         if (target) {
           try {
             await this.instance.client.chat.postMessage({
-              channel: target ?? "",
+              channel: target ?? '',
               text: responseText
             });
           } catch (e) {

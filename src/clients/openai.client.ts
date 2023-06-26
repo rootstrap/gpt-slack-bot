@@ -1,6 +1,5 @@
 import { Configuration, OpenAIApi } from 'openai';
 import { getMessageContent, getOpenAiPayload } from '../utils/openai.utils';
-import { OpenAIChatModel } from '../constants/enums/chat-model.enum';
 import { systemPrompts } from '../constants/messages/system.prompts';
 import { checkTokenLimit } from '../utils/tokenizer.utils';
 
@@ -9,29 +8,29 @@ class OpenAIClient {
 
   constructor(private api: OpenAIApi) {}
 
-  async gptRequest(input: string, prompt: string) {
+  async gptRequest(input: string, prompt: string, context: any) {
     const payload = getOpenAiPayload(input, prompt);
 
-    checkTokenLimit(payload);
+    checkTokenLimit(payload, context);
 
     const result = await this.api.createChatCompletion({
-      model: OpenAIChatModel.GPT_3_5_TURBO,
+      model: process.env.OPENAI_CHAT_MODEL || 'gpt-3.5-turbo-16k',
       messages: payload
     });
 
     return getMessageContent(result);
   }
 
-  async summarizeThread(messageChat: string) {
-    return await this.gptRequest(messageChat, systemPrompts.summarize);
+  async summarizeThread(messageChat: string, context: any) {
+    return await this.gptRequest(messageChat, systemPrompts.summarize, context);
   }
 
-  async generateMessageIdea(idea: string) {
-    return await this.gptRequest(idea, systemPrompts.say);
+  async generateMessageIdea(idea: string, context: any) {
+    return await this.gptRequest(idea, systemPrompts.say, context);
   }
 
-  async askGpt(question: string) {
-    return await this.gptRequest(question, systemPrompts.hi);
+  async askGpt(question: string, context: any) {
+    return await this.gptRequest(question, systemPrompts.hi, context);
   }
 
   public static build() {
