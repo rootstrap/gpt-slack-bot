@@ -1,7 +1,7 @@
 import { AppMentionEvent, SayFn } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
-import { openai } from '../clients/openai.client';
-import { getConversationMembers, getMessageWithUserNames, getThreadMessages, getUserNames } from '../utils/slack.utils';
+import { openai } from '@slack/clients/openai.client';
+import { getConversationMembers, getMessageWithUserNames, getThreadMessages, getUserNames } from '@utils/slack.utils';
 
 export const summarizeHandler = async (event: AppMentionEvent, client: WebClient, say: SayFn) => {
   const { channel, thread_ts, user } = event;

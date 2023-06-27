@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai';
-import { getMessageContent, getOpenAiPayload } from '../utils/openai.utils';
-import { systemPrompts } from '../constants/messages/system.prompts';
-import { checkTokenLimit } from '../utils/tokenizer.utils';
+import { getMessageContent, getOpenAiPayload } from '@utils/openai.utils';
+import { systemPrompts } from '@constants/messages/system.prompts';
+import { checkTokenLimit } from '@utils/tokenizer.utils';
 
 class OpenAIClient {
   private static instance: OpenAIClient;

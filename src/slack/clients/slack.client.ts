@@ -1,8 +1,8 @@
-import { App, AppMentionEvent, SayFn } from '@slack/bolt';
-import { openai } from './openai.client';
-import { botResponses } from '../constants/messages/bot.message';
-import { summarizeHandler } from '../handlers/summarize.handler';
 import { WebClient } from '@slack/web-api';
+import { App, AppMentionEvent, SayFn } from '@slack/bolt';
+import { openai } from '@slack/clients/openai.client';
+import { summarizeHandler } from '@slack/handlers/summarize.handler';
+import { botResponses } from '@constants/messages/bot.message';
 
 class SlackApp {
   private static instance: App;
@@ -31,7 +31,7 @@ class SlackApp {
   }
 
   private static registerMentionEvents() {
-    this.instance.event('app_mention', async ({ event, context, client, say }) => {
+    this.instance.event('app_mention', async ({ event, client, say }) => {
       try {
         const message = event.text;
         const cmd = message.split(' ').pop() || '';
@@ -51,11 +51,12 @@ class SlackApp {
 
   private static registerCommands() {
     this.instance.command('/hi', async ({ command, ack, say }) => {
+      await ack();
+
       const { user_id: user, text: query } = command;
 
       if (query.trim().length > 0) {
         try {
-          await ack();
           const context = { user };
           const responseText = await openai.askGpt(command.text, context);
           await say(responseText);
@@ -68,6 +69,8 @@ class SlackApp {
     });
 
     this.instance.command('/say', async ({ command, ack, say }) => {
+      await ack();
+
       const { user_id: user, text: query } = command;
       const actions = query.split(' to ');
 

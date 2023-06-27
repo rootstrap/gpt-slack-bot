@@ -1,4 +1,4 @@
-FROM node:18
+FROM --platform=linux/amd64 node:18
 
 WORKDIR /usr/src/app
 
@@ -10,4 +10,4 @@ RUN yarn build
 
 EXPOSE 3000
 
-CMD [ "node", "dist/index.js" ]
+CMD [ "yarn", "start" ]
