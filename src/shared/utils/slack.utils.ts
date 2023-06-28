@@ -38,7 +38,7 @@ export const getUserNames = async (slackClient: WebClient, userIDs: string[]) =>
 export const getMessageWithUserNames = (textWithUserIDs: string, userIDs: string[], userNamesMap: { [key: string]: string }) => {
   for (const userID of userIDs) {
     if (textWithUserIDs.includes(userID)) {
-      textWithUserIDs = textWithUserIDs.replace(userID, userNamesMap[userID]);
+      textWithUserIDs = textWithUserIDs.replaceAll(userID, userNamesMap[userID]);
     }
   }
 
