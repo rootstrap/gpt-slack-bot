@@ -3,6 +3,9 @@ import { openai } from './openai.client';
 import { botResponses } from '../constants/messages/bot.message';
 import { summarizeHandler } from '../handlers/summarize.handler';
 import { WebClient } from '@slack/web-api';
+import { channel } from 'diagnostics_channel';
+import { text } from 'stream/consumers';
+import { Lang } from '../models/language.model';
 
 class SlackApp {
   private static instance: App;
@@ -18,7 +21,8 @@ class SlackApp {
   }
 
   private static handlers: any = {
-    summarize: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say)
+    summarize: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say, Lang.en),
+    resumir: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say, Lang.es),
   };
 
   private static init(): App {
@@ -44,6 +48,7 @@ class SlackApp {
           await this.defaultAnswer(say, event);
         }
       } catch (error) {
+        console.log(error);
         await this.defaultError(say, event);
       }
     });
