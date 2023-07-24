@@ -46,7 +46,6 @@ class SlackApp {
           await this.defaultAnswer(say, event);
         }
       } catch (error) {
-        console.log(error);
         await this.defaultError(say, event);
       }
     });
@@ -64,7 +63,6 @@ class SlackApp {
           const responseText = await openai.askGpt(command.text, context);
           await say(responseText);
         } catch (error) {
-          console.log(error);
           await this.defaultError(say);
         }
       } else {
