@@ -1,4 +1,5 @@
 import { Configuration, OpenAIApi } from 'openai';
+import { Lang } from '../../models/language.model';
 import { getMessageContent, getOpenAiPayload } from '@utils/openai.utils';
 import { systemPrompts } from '@constants/messages/system.prompts';
 import { checkTokenLimit } from '@utils/tokenizer.utils';
@@ -6,7 +7,7 @@ import { checkTokenLimit } from '@utils/tokenizer.utils';
 class OpenAIClient {
   private static instance: OpenAIClient;
 
-  constructor(private api: OpenAIApi) {}
+  constructor(private api: OpenAIApi) { }
 
   async gptRequest(input: string, prompt: string, context: any) {
     const payload = getOpenAiPayload(input, prompt);
@@ -21,8 +22,8 @@ class OpenAIClient {
     return getMessageContent(result);
   }
 
-  async summarizeThread(messageChat: string, context: any) {
-    return await this.gptRequest(messageChat, systemPrompts.summarize, context);
+  async summarizeThread(messageChat: string, context: any, lang: Lang) {
+    return await this.gptRequest(messageChat, systemPrompts.summarize + lang, context);
   }
 
   async generateMessageIdea(idea: string, context: any) {

@@ -1,9 +1,10 @@
 import { AppMentionEvent, SayFn } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
+import { Lang } from '../../models/language.model';
 import { openai } from '@slack/clients/openai.client';
 import { getConversationMembers, getMessageWithUserNames, getThreadMessages, getUserNames } from '@utils/slack.utils';
 
-export const summarizeHandler = async (event: AppMentionEvent, client: WebClient, say: SayFn) => {
+export const summarizeHandler = async (event: AppMentionEvent, client: WebClient, say: SayFn, lang: Lang) => {
   const { channel, thread_ts, user } = event;
 
   if (!thread_ts) {
@@ -18,7 +19,8 @@ export const summarizeHandler = async (event: AppMentionEvent, client: WebClient
 
   const context = { thread_ts, user };
   const formattedMessages = threadMessages.map((msg: any) => `[${msg.user}] ${msg.text}`).join(' ');
-  const summarizedThread = await openai.summarizeThread(formattedMessages, context);
+
+  const summarizedThread = await openai.summarizeThread(formattedMessages, context, lang);
 
   const userIDs = await getConversationMembers(client, channel, thread_ts);
   const userNamesMap = await getUserNames(client, userIDs);

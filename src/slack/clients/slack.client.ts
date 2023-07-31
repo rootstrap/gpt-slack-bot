@@ -1,4 +1,5 @@
 import { WebClient } from '@slack/web-api';
+import { Lang } from '../../models/language.model';
 import { App, AppMentionEvent, SayFn } from '@slack/bolt';
 import { openai } from '@slack/clients/openai.client';
 import { summarizeHandler } from '@slack/handlers/summarize.handler';
@@ -18,7 +19,8 @@ class SlackApp {
   }
 
   private static handlers: any = {
-    summarize: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say)
+    summarize: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say, Lang.en),
+    resumir: async (event: AppMentionEvent, client: WebClient, say: SayFn) => summarizeHandler(event, client, say, Lang.es),
   };
 
   private static init(): App {
